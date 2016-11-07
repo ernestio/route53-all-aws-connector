@@ -23,6 +23,7 @@ var (
 		UUID:             "test",
 		BatchID:          "test",
 		ProviderType:     "aws",
+		VPCID:            "vpc-00000000",
 		DatacenterRegion: "eu-west-1",
 		DatacenterSecret: "key",
 		DatacenterToken:  "token",
@@ -157,7 +158,23 @@ func TestEvent(t *testing.T) {
 			})
 		})
 
-		Convey("With no route53 bucket name", func() {
+		Convey("With no vpc id", func() {
+			testEventInvalid := testEvent
+			testEventInvalid.VPCID = ""
+			invalid, _ := json.Marshal(testEventInvalid)
+
+			Convey("When validating the event", func() {
+				var e Event
+				e.Process("route53.create.aws", invalid)
+				err := e.Validate()
+				Convey("It should error", func() {
+					So(err, ShouldNotBeNil)
+					So(err.Error(), ShouldEqual, "Datacenter VPC ID invalid")
+				})
+			})
+		})
+
+		Convey("With no route53 zone name", func() {
 			testEventInvalid := testEvent
 			testEventInvalid.Name = ""
 			invalid, _ := json.Marshal(testEventInvalid)
@@ -168,7 +185,7 @@ func TestEvent(t *testing.T) {
 				err := e.Validate()
 				Convey("It should error", func() {
 					So(err, ShouldNotBeNil)
-					So(err.Error(), ShouldEqual, "route53 name is invalid")
+					So(err.Error(), ShouldEqual, "Route53 zone name invalid")
 				})
 			})
 		})
