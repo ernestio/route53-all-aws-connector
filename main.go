@@ -174,13 +174,20 @@ func updateRoute53(ev *Event) error {
 }
 
 func deleteRoute53(ev *Event) error {
+	// clear ruleset before delete
+	ev.Records = nil
+	err := updateRoute53(ev)
+	if err != nil {
+		return err
+	}
+
 	svc := getRoute53Client(ev)
 
 	req := &route53.DeleteHostedZoneInput{
 		Id: aws.String(ev.HostedZoneID),
 	}
 
-	_, err := svc.DeleteHostedZone(req)
+	_, err = svc.DeleteHostedZone(req)
 
 	return err
 }
