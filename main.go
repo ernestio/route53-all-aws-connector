@@ -131,13 +131,16 @@ func createRoute53(ev *Event) error {
 	req := &route53.CreateHostedZoneInput{
 		CallerReference: aws.String(uuid.NewV4().String()),
 		Name:            aws.String(ev.Name),
-		HostedZoneConfig: &route53.HostedZoneConfig{
+	}
+
+	if ev.Private == true {
+		req.HostedZoneConfig = &route53.HostedZoneConfig{
 			PrivateZone: aws.Bool(ev.Private),
-		},
-		VPC: &route53.VPC{
+		}
+		req.VPC = &route53.VPC{
 			VPCId:     aws.String(ev.VPCID),
 			VPCRegion: aws.String(ev.DatacenterRegion),
-		},
+		}
 	}
 
 	resp, err := svc.CreateHostedZone(req)
